@@ -19,10 +19,10 @@ pip install tk-normalizer
 ## Quick Start
 
 ```python
-from tk_normalizer import url_normalize
+from tk_normalizer import normalize_url
 
 # Simple usage with the convenience function
-normalized = url_normalize("http://www.Example.com/path?b=2&a=1&utm_source=test")
+normalized = normalize_url("http://www.Example.com/path?b=2&a=1&utm_source=test")
 print(normalized)  # Output: example.com/path?a=1&b=2
 
 # Using the class directly for more control
@@ -98,10 +98,10 @@ print(result)
 ### Error Handling
 
 ```python
-from tk_normalizer import url_normalize, InvalidUrlException
+from tk_normalizer import normalize_url, InvalidUrlException
 
 try:
-    normalized = url_normalize("not a valid url")
+    normalized = normalize_url("not a valid url")
 except InvalidUrlException as e:
     print(f"Invalid URL: {e}")
 ```

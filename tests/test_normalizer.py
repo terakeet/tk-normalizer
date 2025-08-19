@@ -4,7 +4,7 @@ from multiprocessing import Process
 
 import pytest
 
-from tk_normalizer import InvalidUrlException, TkNormalizer, url_normalize
+from tk_normalizer import InvalidUrlException, TkNormalizer, normalize_url
 
 
 def test_duplicate_parameters() -> None:
@@ -189,19 +189,19 @@ def test_catastrophic_backtracking() -> None:
     assert "success" in result_dict and result_dict["success"]
 
 
-# Test the new url_normalize function
-def test_url_normalize_function() -> None:
+# Test the new normalize_url function
+def test_normalize_url_function() -> None:
     # Test basic functionality
-    result = url_normalize("http://www.Example.com/path?b=2&a=1&utm_source=test")
+    result = normalize_url("http://www.Example.com/path?b=2&a=1&utm_source=test")
     assert result == "example.com/path?a=1&b=2"
 
     # Test with complex URL
-    result = url_normalize("https://blog.example.com/path/?a=2&a=1&b=3&b=2&c=1&c=3&_ga=test")
+    result = normalize_url("https://blog.example.com/path/?a=2&a=1&b=3&b=2&c=1&c=3&_ga=test")
     assert result == "blog.example.com/path?a=1&a=2&b=2&b=3&c=1&c=3"
 
     # Test that it raises exception for invalid URLs
     with pytest.raises(InvalidUrlException):
-        url_normalize("http://localhost")
+        normalize_url("http://localhost")
 
 
 # These fixtures are at the bottom for readability of the upper tests

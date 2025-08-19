@@ -9,10 +9,10 @@ query parameters, and more.
 from .normalizer import InvalidUrlException, TkNormalizer
 
 __version__ = "0.1.0"
-__all__ = ["TkNormalizer", "InvalidUrlException", "url_normalize"]
+__all__ = ["TkNormalizer", "InvalidUrlException", "normalize_url"]
 
 
-def url_normalize(url: str) -> str:
+def normalize_url(url: str) -> str:
     """
     Normalize a URL to its normalized form.
 
@@ -29,8 +29,8 @@ def url_normalize(url: str) -> str:
         InvalidUrlException: If the URL is invalid or cannot be normalized.
 
     Example:
-        >>> from tk_normalizer import url_normalize
-        >>> url_normalize("http://www.Example.com/path?b=2&a=1&utm_source=test")
+        >>> from tk_normalizer import normalize_url
+        >>> normalize_url("http://www.Example.com/path?b=2&a=1&utm_source=test")
         'example.com/path?a=1&b=2'
     """
     normalizer = TkNormalizer(url)
