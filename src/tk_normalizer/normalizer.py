@@ -2,6 +2,7 @@ import fnmatch
 import hashlib
 import logging
 import re
+from collections.abc import Iterator, KeysView
 from urllib.parse import ParseResult, parse_qsl, urlencode, urlparse
 
 # Uses https://gist.github.com/Integralist/edcfb88c925658a13fc3e51f581fe4bc as a starting point
@@ -86,9 +87,11 @@ class TkNormalizer:
             self.logger = logging.getLogger(__name__)
             self.original_url: str = url
             self.normalized_url: str
-            self.parent_normal_url: str
-            self.root_normal_url: str
-            self.normalized_url, self.parent_normal_url, self.root_normal_url = self.normalize_url(url)
+            self.parent_normalized_url: str
+            self.root_normalized_url: str
+            self.query_string: str
+            self.path: str
+            self.normalized_url, self.parent_normalized_url, self.root_normalized_url = self.process_url(url)
             self.url_hashes: dict[str, str] = self.compute_hashes()
         except InvalidUrlException as e:
             if self.log_errors:
@@ -100,7 +103,7 @@ class TkNormalizer:
                 self.logger.error(m)
             raise InvalidUrlException(m, e) from e
 
-    def normalize_url(self, url: str) -> tuple[str, str, str]:
+    def process_url(self, url: str) -> tuple[str, str, str]:
         url = self.lowercase_url(url)
         parsed_url = self.parse_url(url)
         netloc, path, query = self.validate_url(parsed_url)
@@ -110,10 +113,12 @@ class TkNormalizer:
         query_params = self.remove_unwanted_params(query_params)
         query_params = self.sort_query_params(query_params)
         unique_params = self.remove_duplicate_params(query_params)
+        self.query_string = urlencode(unique_params)
+        self.path = path
         normalized_url = self.rebuild_url(netloc, path, unique_params)
-        parent_normal_url = self.get_parent_normal_url(netloc)
-        root_normal_url = self.get_root_normal_url(netloc)
-        return normalized_url, parent_normal_url, root_normal_url
+        parent_normalized_url = self.get_parent_normalized_url(netloc)
+        root_normalized_url = self.get_root_normalized_url(netloc)
+        return normalized_url, parent_normalized_url, root_normalized_url
 
     @staticmethod
     def lowercase_url(url: str) -> str:
@@ -198,11 +203,11 @@ class TkNormalizer:
         return f"{netloc}{path}?{query_string}" if query_string else f"{netloc}{path}"
 
     @staticmethod
-    def get_parent_normal_url(netloc: str) -> str:
+    def get_parent_normalized_url(netloc: str) -> str:
         return netloc
 
     @staticmethod
-    def get_root_normal_url(netloc: str) -> str:
+    def get_root_normalized_url(netloc: str) -> str:
         return ".".join(netloc.split(".")[-2:])
 
     def compute_hashes(self) -> dict[str, str]:
@@ -211,31 +216,31 @@ class TkNormalizer:
 
         return {
             "normalized_url_hash": sha256_hash(self.normalized_url),
-            "parent_normal_url_hash": sha256_hash(self.parent_normal_url),
-            "root_normal_url_hash": sha256_hash(self.root_normal_url),
+            "parent_normalized_url_hash": sha256_hash(self.parent_normalized_url),
+            "root_normalized_url_hash": sha256_hash(self.root_normalized_url),
         }
 
-    def get_normalized_url(self) -> dict[str, str | dict[str, str]]:
+    def to_dict(self) -> dict[str, str | list[tuple[str, str]]]:
         return {
             "normalized_url": self.normalized_url,
-            "parent_normal_url": self.parent_normal_url,
-            "root_normal_url": self.root_normal_url,
+            "parent_normalized_url": self.parent_normalized_url,
+            "root_normalized_url": self.root_normalized_url,
+            "query_string": self.query_string,
+            "path": self.path,
             **self.url_hashes,
         }
 
+    def __iter__(self) -> Iterator[str]:
+        """Return an iterator over the keys of the normalized URL dict."""
+        return iter(self.to_dict())
 
-if __name__ == "__main__":  # pragma: no cover
-    url1 = "http://www.Example.com/some-sub-folder/or_page.html?b=2&a=1&a=1&b=2&c=3&bad_param=some_value"
-    url2 = "http://blog.example.com/some-folder/some-page.html?b=2&a=1&a=1&b=2&c=3&bad_param=another_value"
+    def __getitem__(self, key: str) -> str | list[tuple[str, str]]:
+        """Allow dict-like access to normalized URL fields."""
+        return self.to_dict()[key]
 
-    try:
-        normalizer1 = TkNormalizer(url1)
-        print(normalizer1.get_normalized_url())
-    except InvalidUrlException as e:
-        print(f"Error: {e}")
+    def keys(self) -> KeysView[str]:
+        """Return the keys of the normalized URL dict."""
+        return self.to_dict().keys()
 
-    try:
-        normalizer2 = TkNormalizer(url2)
-        print(normalizer2.get_normalized_url())
-    except InvalidUrlException as e:
-        print(f"Error: {e}")
+    def __str__(self) -> str:
+        return self.normalized_url

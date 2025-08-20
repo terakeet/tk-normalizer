@@ -19,18 +19,14 @@ pip install tk-normalizer
 ## Quick Start
 
 ```python
-from tk_normalizer import normalize_url
-
-# Simple usage with the convenience function
-normalized = normalize_url("http://www.Example.com/path?b=2&a=1&utm_source=test")
-print(normalized)  # Output: example.com/path?a=1&b=2
-
-# Using the class directly for more control
 from tk_normalizer import TkNormalizer
 
-normalizer = TkNormalizer("http://www.Example.com/path?b=2&a=1&utm_source=test")
-print(normalizer.normalized_url)  # example.com/path?a=1&b=2
-print(normalizer.get_normalized_url())  # Full details including hashes
+# Simple usage - str() returns just the normalized URL
+normalized = TkNormalizer("http://www.Example.com/path?b=2&a=1&utm_source=test")
+print(str(normalized))  # Output: example.com/path?a=1&b=2
+
+# Get full details with dict()
+print(dict(normalized))  # Returns all fields including query_string, path, and hashes
 ```
 
 ## Features
@@ -82,26 +78,32 @@ The following tracking parameters are automatically removed during normalization
 from tk_normalizer import TkNormalizer
 
 normalizer = TkNormalizer("http://blog.example.com/page?b=2&a=1")
-result = normalizer.get_normalized_url()
 
+# Use str() for just the normalized URL
+print(str(normalizer))  # blog.example.com/page?a=1&b=2
+
+# Use dict() for complete normalization data
+result = dict(normalizer)
 print(result)
 # {
 #   'normalized_url': 'blog.example.com/page?a=1&b=2',
-#   'parent_normal_url': 'blog.example.com',
-#   'root_normal_url': 'example.com',
+#   'parent_normalized_url': 'blog.example.com',
+#   'root_normalized_url': 'example.com',
+#   'query_string': 'a=1&b=2',
+#   'path': '/page',
 #   'normalized_url_hash': '...',
-#   'parent_normal_url_hash': '...',
-#   'root_normal_url_hash': '...'
+#   'parent_normalized_url_hash': '...',
+#   'root_normalized_url_hash': '...'
 # }
 ```
 
 ### Error Handling
 
 ```python
-from tk_normalizer import normalize_url, InvalidUrlException
+from tk_normalizer import TkNormalizer, InvalidUrlException
 
 try:
-    normalized = normalize_url("not a valid url")
+    normalizer = TkNormalizer("not a valid url")
 except InvalidUrlException as e:
     print(f"Invalid URL: {e}")
 ```
@@ -113,10 +115,19 @@ from tk_normalizer import TkNormalizer
 
 normalizer = TkNormalizer("https://blog.example.com/path?a=1")
 
-# Access individual normalized components
-print(normalizer.normalized_url)         # blog.example.com/path?a=1
-print(normalizer.parent_normal_url)   # blog.example.com
-print(normalizer.root_normal_url)     # example.com
+# Dict-like access to individual fields
+print(normalizer["normalized_url"])       # blog.example.com/path?a=1
+print(normalizer["parent_normalized_url"]) # blog.example.com
+print(normalizer["root_normalized_url"])   # example.com
+print(normalizer["query_string"])          # a=1
+print(normalizer["path"])                  # /path
+
+# Iterate over available fields
+for key in normalizer:
+    print(f"{key}: {normalizer[key]}")
+
+# Get all field names
+print(normalizer.keys())
 ```
 
 ## Hashing

@@ -4,86 +4,86 @@ from multiprocessing import Process
 
 import pytest
 
-from tk_normalizer import InvalidUrlException, TkNormalizer, normalize_url
+from tk_normalizer import InvalidUrlException, TkNormalizer
 
 
 def test_duplicate_parameters() -> None:
     normalizer = TkNormalizer(
         "http://www.Example.com/some-sub-folder/or_page.html?b=2&a=1&a=1&b=2&c=3&utm_source=some_value"
     )
-    result = normalizer.get_normalized_url()
+    result = dict(normalizer)
     assert result["normalized_url"] == "example.com/some-sub-folder/or_page.html?a=1&b=2&c=3"
-    assert result["parent_normal_url"] == "example.com"
-    assert result["root_normal_url"] == "example.com"
+    assert result["parent_normalized_url"] == "example.com"
+    assert result["root_normalized_url"] == "example.com"
 
 
 def test_multiple_similar_parameters() -> None:
     normalizer = TkNormalizer(
         "http://blog.example.com/some-folder/some-page.html?b=2&a=1&a=1&b=2&c=3&fbclid=another_value",
     )
-    result = normalizer.get_normalized_url()
+    result = dict(normalizer)
     assert result["normalized_url"] == "blog.example.com/some-folder/some-page.html?a=1&b=2&c=3"
-    assert result["parent_normal_url"] == "blog.example.com"
-    assert result["root_normal_url"] == "example.com"
+    assert result["parent_normalized_url"] == "blog.example.com"
+    assert result["root_normalized_url"] == "example.com"
 
 
 def test_case_sensitivity() -> None:
     normalizer = TkNormalizer(
         "https://example.com/?a=1&b=2",
     )
-    result = normalizer.get_normalized_url()
+    result = dict(normalizer)
     assert result["normalized_url"] == "example.com?a=1&b=2"
-    assert result["parent_normal_url"] == "example.com"
-    assert result["root_normal_url"] == "example.com"
+    assert result["parent_normalized_url"] == "example.com"
+    assert result["root_normalized_url"] == "example.com"
 
 
 def test_protocol_differences() -> None:
     normalizer = TkNormalizer(
         "http://example.com/path/?a=1&a=1&b=2&utm_source=some_value",
     )
-    result = normalizer.get_normalized_url()
+    result = dict(normalizer)
     assert result["normalized_url"] == "example.com/path?a=1&b=2"
-    assert result["parent_normal_url"] == "example.com"
-    assert result["root_normal_url"] == "example.com"
+    assert result["parent_normalized_url"] == "example.com"
+    assert result["root_normalized_url"] == "example.com"
 
 
 def test_subdomain_presence() -> None:
     normalizer = TkNormalizer(
         "https://www.example.com/",
     )
-    result = normalizer.get_normalized_url()
+    result = dict(normalizer)
     assert result["normalized_url"] == "example.com"
-    assert result["parent_normal_url"] == "example.com"
-    assert result["root_normal_url"] == "example.com"
+    assert result["parent_normalized_url"] == "example.com"
+    assert result["root_normalized_url"] == "example.com"
 
 
 def test_subdomain_and_path_presence() -> None:
     normalizer = TkNormalizer(
         "http://example.com/",
     )
-    result = normalizer.get_normalized_url()
+    result = dict(normalizer)
     assert result["normalized_url"] == "example.com"
-    assert result["parent_normal_url"] == "example.com"
-    assert result["root_normal_url"] == "example.com"
+    assert result["parent_normalized_url"] == "example.com"
+    assert result["root_normalized_url"] == "example.com"
 
 
 # This test should allow, but reorder, duplicate parameter keys with different values
 def test_multiple_parameters_with_duplicates_and_unwanted() -> None:
     normalizer = TkNormalizer("https://blog.example.com/path/?a=2&a=1&b=3&b=2&c=1&c=3&_ga=test")
-    result = normalizer.get_normalized_url()
+    result = dict(normalizer)
     assert result["normalized_url"] == "blog.example.com/path?a=1&a=2&b=2&b=3&c=1&c=3"
-    assert result["parent_normal_url"] == "blog.example.com"
-    assert result["root_normal_url"] == "example.com"
+    assert result["parent_normalized_url"] == "blog.example.com"
+    assert result["root_normalized_url"] == "example.com"
 
 
 def test_multiple_parameters_with_unwanted() -> None:
     normalizer = TkNormalizer(
         "http://www.example.com/some-path/?a=1&c=3&b=2&utm_source=value&utm_campaign=remove",
     )
-    result = normalizer.get_normalized_url()
+    result = dict(normalizer)
     assert result["normalized_url"] == "example.com/some-path?a=1&b=2&c=3"
-    assert result["parent_normal_url"] == "example.com"
-    assert result["root_normal_url"] == "example.com"
+    assert result["parent_normalized_url"] == "example.com"
+    assert result["root_normalized_url"] == "example.com"
 
 
 # Test case for wildcard parameter removal
@@ -91,10 +91,10 @@ def test_wildcard_parameter_removal() -> None:
     normalizer = TkNormalizer(
         "http://www.example.com/some-path/?a=1&c=3&b=2&utm_param=value&utm_source=remove",
     )
-    result = normalizer.get_normalized_url()
+    result = dict(normalizer)
     assert result["normalized_url"] == "example.com/some-path?a=1&b=2&c=3"
-    assert result["parent_normal_url"] == "example.com"
-    assert result["root_normal_url"] == "example.com"
+    assert result["parent_normalized_url"] == "example.com"
+    assert result["root_normalized_url"] == "example.com"
 
 
 # Test case for invalid URL input
@@ -106,17 +106,17 @@ def test_invalid_url() -> None:
 
 def test_normalized_as_input() -> None:
     normalizer = TkNormalizer("example.com/some-path?a=1&b=2&c=3")
-    result = normalizer.get_normalized_url()
+    result = dict(normalizer)
     assert result["normalized_url"] == "example.com/some-path?a=1&b=2&c=3"
-    assert result["parent_normal_url"] == "example.com"
-    assert result["root_normal_url"] == "example.com"
+    assert result["parent_normalized_url"] == "example.com"
+    assert result["root_normalized_url"] == "example.com"
 
 
 def test_query_string_extraction() -> None:
     normalizer = TkNormalizer(
         "https://www.newscientist.com/article/mg23831750-500-how-can-india-clean-up-when-all-of-its-waste-has-an-afterlife/?utm_campaign=RSS%7CNSNS&utm_source=NSNS&utm_medium=RSS&campaign_id=RSS%7CNSNS-"
     )
-    result = normalizer.get_normalized_url()
+    result = dict(normalizer)
     assert (
         result["normalized_url"]
         == "newscientist.com/article/mg23831750-500-how-can-india-clean-up-when-all-of-its-waste-has-an-afterlife?campaign_id=rss%7Cnsns-"
@@ -153,7 +153,7 @@ def test_url_initialization_no_errors(url: str) -> None:
 def run_normalizer_for_test(result_dict: dict, url: str) -> None:
     try:
         normalizer = TkNormalizer(url)
-        result_dict["result"] = normalizer.get_normalized_url()
+        result_dict["result"] = dict(normalizer)
         result_dict["success"] = True
     except Exception as e:
         result_dict["exception"] = str(e)
@@ -189,19 +189,122 @@ def test_catastrophic_backtracking() -> None:
     assert "success" in result_dict and result_dict["success"]
 
 
-# Test the new normalize_url function
-def test_normalize_url_function() -> None:
-    # Test basic functionality
-    result = normalize_url("http://www.Example.com/path?b=2&a=1&utm_source=test")
-    assert result == "example.com/path?a=1&b=2"
+def test_str_method() -> None:
+    """Test that str(normalizer) returns the normalized URL."""
+    normalizer = TkNormalizer("http://www.Example.com/path?b=2&a=1&utm_source=test")
+    assert str(normalizer) == "example.com/path?a=1&b=2"
 
-    # Test with complex URL
-    result = normalize_url("https://blog.example.com/path/?a=2&a=1&b=3&b=2&c=1&c=3&_ga=test")
-    assert result == "blog.example.com/path?a=1&a=2&b=2&b=3&c=1&c=3"
+    # Test with subdomain
+    normalizer = TkNormalizer("https://blog.example.com/article?z=3&x=1")
+    assert str(normalizer) == "blog.example.com/article?x=1&z=3"
 
-    # Test that it raises exception for invalid URLs
-    with pytest.raises(InvalidUrlException):
-        normalize_url("http://localhost")
+    # Test without path or query
+    normalizer = TkNormalizer("http://www.example.com")
+    assert str(normalizer) == "example.com"
+
+
+def test_dict_conversion() -> None:
+    """Test that dict(normalizer) returns complete normalization data."""
+    normalizer = TkNormalizer("http://www.Example.com/path?b=2&a=1&utm_source=test")
+    result = dict(normalizer)
+
+    # Check all expected fields are present
+    assert "normalized_url" in result
+    assert "parent_normalized_url" in result
+    assert "root_normalized_url" in result
+    assert "query_string" in result
+    assert "path" in result
+    assert "normalized_url_hash" in result
+    assert "parent_normalized_url_hash" in result
+    assert "root_normalized_url_hash" in result
+
+    # Check values
+    assert result["normalized_url"] == "example.com/path?a=1&b=2"
+    assert result["parent_normalized_url"] == "example.com"
+    assert result["root_normalized_url"] == "example.com"
+    assert result["query_string"] == "a=1&b=2"
+    assert result["path"] == "/path"
+
+    # Test with subdomain
+    normalizer = TkNormalizer("https://blog.example.com/article")
+    result = dict(normalizer)
+    assert result["parent_normalized_url"] == "blog.example.com"
+    assert result["root_normalized_url"] == "example.com"
+    assert result["path"] == "/article"
+    assert result["query_string"] == ""
+
+
+def test_dict_like_access() -> None:
+    """Test bracket notation access to fields."""
+    normalizer = TkNormalizer("http://blog.example.com/path?a=1&b=2")
+
+    # Test individual field access
+    assert normalizer["normalized_url"] == "blog.example.com/path?a=1&b=2"
+    assert normalizer["parent_normalized_url"] == "blog.example.com"
+    assert normalizer["root_normalized_url"] == "example.com"
+    assert normalizer["query_string"] == "a=1&b=2"
+    assert normalizer["path"] == "/path"
+
+    # Test hash fields exist and are strings
+    assert isinstance(normalizer["normalized_url_hash"], str)
+    assert isinstance(normalizer["parent_normalized_url_hash"], str)
+    assert isinstance(normalizer["root_normalized_url_hash"], str)
+
+    # Test KeyError for non-existent field
+    with pytest.raises(KeyError):
+        _ = normalizer["non_existent_field"]
+
+
+def test_iteration() -> None:
+    """Test that normalizer is iterable over keys."""
+    normalizer = TkNormalizer("http://example.com/path?a=1")
+
+    # Get all keys through iteration
+    keys = list(normalizer)
+
+    # Check expected keys are present
+    expected_keys = {
+        "normalized_url",
+        "parent_normalized_url",
+        "root_normalized_url",
+        "query_string",
+        "path",
+        "normalized_url_hash",
+        "parent_normalized_url_hash",
+        "root_normalized_url_hash",
+    }
+    assert set(keys) == expected_keys
+
+    # Test iteration in for loop
+    for key in normalizer:
+        assert key in expected_keys
+        # Should be able to access each key
+        value = normalizer[key]
+        assert value is not None or value == ""  # Empty string for empty query_string is ok
+
+
+def test_keys_method() -> None:
+    """Test the keys() method returns all available fields."""
+    normalizer = TkNormalizer("http://example.com/path?a=1")
+
+    keys = normalizer.keys()
+    expected_keys = {
+        "normalized_url",
+        "parent_normalized_url",
+        "root_normalized_url",
+        "query_string",
+        "path",
+        "normalized_url_hash",
+        "parent_normalized_url_hash",
+        "root_normalized_url_hash",
+    }
+
+    assert set(keys) == expected_keys
+
+    # Keys should be a KeysView object
+    assert hasattr(keys, "__iter__")
+    assert hasattr(keys, "__len__")
+    assert len(keys) == 8
 
 
 # These fixtures are at the bottom for readability of the upper tests
@@ -292,13 +395,13 @@ def sad_normal_fx() -> list[str]:
 def test_happy_normals(happy_normal_fx: list[str]) -> None:
     for url, expected in happy_normal_fx:
         normalizer = TkNormalizer(url)
-        assert normalizer.get_normalized_url()["normalized_url"] == expected
+        assert normalizer["normalized_url"] == expected
 
 
 def test_happy_edges(happy_edge_fx: list[str]) -> None:
     for url, expected in happy_edge_fx:
         normalizer = TkNormalizer(url)
-        assert normalizer.get_normalized_url()["normalized_url"] == expected
+        assert normalizer["normalized_url"] == expected
 
 
 def test_sad_normals(sad_normal_fx: list[str]) -> None:

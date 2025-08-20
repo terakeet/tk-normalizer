@@ -171,22 +171,41 @@ The normalizer is designed to be multiprocessing-safe:
 ```python
 {
     'normalized_url': 'example.com/path?a=1',
-    'parent_normal_url': 'example.com',
-    'root_normal_url': 'example.com',
+    'parent_normalized_url': 'example.com',
+    'root_normalized_url': 'example.com',
+    'query_string': 'a=1',
+    'path': '/path',
     'normalized_url_hash': '...',
-    'parent_normal_url_hash': '...',
-    'root_normal_url_hash': '...'
+    'parent_normalized_url_hash': '...',
+    'root_normalized_url_hash': '...'
 }
 ```
 
 ### Component Access
 
-Individual components are accessible as instance attributes:
-- `normalized_url`: The normalized URL string
-- `parent_normal_url`: Domain without path
-- `root_normal_url`: Root domain without subdomains
-- `original_url`: Original input URL
-- `url_hashes`: Dictionary of computed hashes
+The normalizer provides multiple ways to access components:
+
+#### String Conversion
+- `str(normalizer)`: Returns just the normalized URL string
+
+#### Dictionary Conversion
+- `dict(normalizer)`: Returns all fields as a dictionary
+
+#### Dict-like Access
+- `normalizer["field_name"]`: Access specific fields using bracket notation
+- Available fields: `normalized_url`, `parent_normalized_url`, `root_normalized_url`, `query_string`, `path`, plus the three hash fields
+
+#### Iteration
+- `for key in normalizer`: Iterate over field names
+- `normalizer.keys()`: Get all available field names
+
+#### Direct Attributes (Internal)
+- `normalizer.normalized_url`: The normalized URL string
+- `normalizer.parent_normalized_url`: Domain without path
+- `normalizer.root_normalized_url`: Root domain without subdomains
+- `normalizer.original_url`: Original input URL
+- `normalizer.query_string`: Normalized query string
+- `normalizer.path`: URL path component
 
 ## Known Limitations
 
