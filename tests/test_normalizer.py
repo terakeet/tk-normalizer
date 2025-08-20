@@ -328,6 +328,10 @@ def happy_normal_fx() -> list[str]:
             "nordstrom.com/browse/men/clothing/pants?filterbymaterial=mesh&srsltid=afmbooo0gkfvz9kwi-1s5atomy-8mtn6nwvrwub1nmxc9z9b8zse6w7h",
             "nordstrom.com/browse/men/clothing/pants?filterbymaterial=mesh",
         ),
+        (
+            "https://www.libertymutual.com/insurance-resources/auto/main-types-of-car-insurance#:~:text=The%206%20main%20types%[…]that%20you,Uninsured%20Motorist",
+            "libertymutual.com/insurance-resources/auto/main-types-of-car-insurance",
+        ),
     ]
 
 
