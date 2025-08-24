@@ -307,6 +307,15 @@ def test_keys_method() -> None:
     assert len(keys) == 8
 
 
+def test_multipart_tld_root_extraction() -> None:
+    """Test root domain extraction with multi-part TLD (.co.uk)."""
+    normalizer = TkNormalizer("http://blog.example.co.uk/path?b=2&a=1&utm_source=test")
+    result = dict(normalizer)
+    assert result["normalized_url"] == "blog.example.co.uk/path?a=1&b=2"
+    assert result["parent_normalized_url"] == "blog.example.co.uk"
+    assert result["root_normalized_url"] == "example.co.uk"
+
+
 # These fixtures are at the bottom for readability of the upper tests
 
 
