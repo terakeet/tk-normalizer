@@ -393,6 +393,8 @@ def sad_normal_fx() -> list[str]:
         ".com",
         "http://.co",
         "https://www.google.comftp://ftp.ics.uci.edu/pub/wayne1/octa-bus-routes/route085.pdf",
+        "www.google",
+        "localhost",
     ]
 
 
