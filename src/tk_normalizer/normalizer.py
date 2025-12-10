@@ -107,9 +107,7 @@ class TkNormalizer:
         url = self.lowercase_url(url)
         parsed_url = self.parse_url(url)
         netloc, path, query = self.validate_url(parsed_url)
-
         path = unquote(path)
-
         netloc = self.remove_www_subdomain(netloc)
         path = self.remove_trailing_slash(path)
         query_params = self.parse_query_params(query)
@@ -247,20 +245,3 @@ class TkNormalizer:
 
     def __str__(self) -> str:
         return self.normalized_url
-
-
-
-if __name__ == "__main__":
-
-    # url_to_norm = 'http://www.Example.com/path?b=2&a=1&utm_source=test'
-    url_to_normalize = 'https://en.wikipedia.org/wiki/REYL_%26_Cie?utm_source=chatgpt.com'
-
-    url_normalized_old = str(TkNormalizer(url_to_normalize))
-
-    print(f'{url_to_normalize   = }')
-    print(f'{url_normalized_old = }')
-
-
-
-
-
