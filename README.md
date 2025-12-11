@@ -209,6 +209,8 @@ We have a [workflow](.github/workflows/deploy_to_pypi.yml) set up to deploy to o
 6. After creating the release you should see a workflow get triggered, this will deploy the updated version to pypi
 7. If you want to see check the pypi package page after the workflow completes running
 
+> NOTE: DO NOT change the name of the workflow file. If you do the deployment will not work unless we update the configuration in PYPI under trusted publishers
+
 If you have questions or concerns reach out.
 
 ## License
