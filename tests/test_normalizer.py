@@ -414,3 +414,10 @@ def test_sad_normals(sad_normal_fx: list[str]) -> None:
             print(url)
             TkNormalizer(url)
         assert "Invalid URL" in str(excinfo.value)
+
+
+def test_unquote() -> None:
+    test_url = 'https://www.testurl.com/test%20test#:~:text=Testing%20tester%20test%20test%20Data'
+    expected_normalized_url = 'testurl.com/test test'
+    normalized_url = str(TkNormalizer(test_url))
+    assert normalized_url == expected_normalized_url
