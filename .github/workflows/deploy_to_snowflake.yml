@@ -1,22 +1,12 @@
 name: Deploy Normalizer to Snowflake
 
 on:
-    release:
-        types: [created]
-
-    workflow_dispatch:
-        inputs:
-        version_type:
-            description: 'Please input major or minor'
-            required: true
-            type: choice
-            default: minor
-            options:
-            - major
-            - minor
+    # workflow_run:
+    #     workflows: [deploy_to_pypi]
+    #     types: [completed]
 
 jobs:
-  deploy:
+  update-snowflake-udf:
     runs-on: ubuntu-latest
 
     env:
@@ -28,6 +18,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Set env
+        id: get_env
+        run: echo "short_ref=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+
+      - name: Determine database
+        shell: bash
+        env:
+          BRANCH: ${{ steps.get_env.outputs.short_ref }}
+        run: |
+          if [ ${BRANCH} == "main" ]; then
+            echo "SNOWFLAKE_DATABASE=TERAKEET" >> $GITHUB_ENV
+          else
+            echo "SNOWFLAKE_DATABASE=TERAKEET_DEV" >> $GITHUB_ENV
+          fi
 
         # Snowflake CLI installation
       - uses: snowflakedb/snowflake-cli-action@v1.5
@@ -42,21 +47,21 @@ jobs:
 
         run: |
           snow sql -x -q "CREATE OR REPLACE FUNCTION TERAKEET.COMMON.NORMALIZE_URL_TEMP("URL" VARCHAR)
-                            RETURNS VARCHAR
-                            LANGUAGE PYTHON
-                            RUNTIME_VERSION = '3.11'
-                            HANDLER = 'normalize'
-                            ARTIFACT_REPOSITORY = snowflake.snowpark.pypi_shared_repository
-                            PACKAGES = ('tk-normalizer')
-                            AS
-                            $$
-                            from tk_normalizer import TkNormalizer, InvalidUrlException
-                            def normalize(url):
-                                if url is None:
-                                    return None
-                                try:
-                                    normalized_value = TkNormalizer(url)
-                                    return str(normalized_value)
-                                except InvalidUrlException:
-                                    return None
-                            $$;"
+                        RETURNS VARCHAR
+                        LANGUAGE PYTHON
+                        RUNTIME_VERSION = '3.11'
+                        HANDLER = 'normalize'
+                        ARTIFACT_REPOSITORY = snowflake.snowpark.pypi_shared_repository
+                        PACKAGES = ('tk-normalizer')
+                        AS
+                        $$
+                        from tk_normalizer import TkNormalizer, InvalidUrlException
+                        def normalize(url):
+                            if url is None:
+                                return None
+                            try:
+                                normalized_value = TkNormalizer(url)
+                                return str(normalized_value)
+                            except InvalidUrlException:
+                                return None
+                        $$;"
