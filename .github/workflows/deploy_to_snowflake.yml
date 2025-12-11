@@ -47,10 +47,10 @@ jobs:
           snow sql -x -q 'CREATE OR REPLACE FUNCTION TERAKEET.COMMON.NORMALIZE_URL_TEMP("URL" VARCHAR)
                         RETURNS VARCHAR
                         LANGUAGE PYTHON
-                        RUNTIME_VERSION = ''\''3.11'\''
-                        HANDLER = '\''normalize'\''
+                        RUNTIME_VERSION = "3.11"
+                        HANDLER = "normalize"
                         ARTIFACT_REPOSITORY = snowflake.snowpark.pypi_shared_repository
-                        PACKAGES = ('\''tk-normalizer'\''')
+                        PACKAGES = ("tk-normalizer")
                         AS
                         $$
                         from tk_normalizer import TkNormalizer, InvalidUrlException
