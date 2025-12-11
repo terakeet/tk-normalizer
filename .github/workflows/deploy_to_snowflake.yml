@@ -1,10 +1,8 @@
 name: Deploy Normalizer to Snowflake
 
 on:
-    # workflow_run:
-    #     workflows: [deploy_to_pypi]
-    #     types: [completed]
-
+    push:
+        branches: [feature/snowflake-deploy]
 jobs:
   update-snowflake-udf:
     runs-on: ubuntu-latest
