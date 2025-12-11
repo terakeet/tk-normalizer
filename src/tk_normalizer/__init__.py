@@ -8,5 +8,5 @@ query parameters, and more.
 
 from .normalizer import InvalidUrlException, TkNormalizer
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 __all__ = ["TkNormalizer", "InvalidUrlException"]

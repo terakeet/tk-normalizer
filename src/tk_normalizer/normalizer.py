@@ -3,7 +3,7 @@ import hashlib
 import logging
 import re
 from collections.abc import Iterator, KeysView
-from urllib.parse import ParseResult, parse_qsl, urlencode, urlparse
+from urllib.parse import ParseResult, parse_qsl, unquote, urlencode, urlparse
 
 # Uses https://gist.github.com/Integralist/edcfb88c925658a13fc3e51f581fe4bc as a starting point
 # Modified for more current rules regarding host/domain/tld naming.
@@ -107,6 +107,7 @@ class TkNormalizer:
         url = self.lowercase_url(url)
         parsed_url = self.parse_url(url)
         netloc, path, query = self.validate_url(parsed_url)
+        path = unquote(path)
         netloc = self.remove_www_subdomain(netloc)
 
         path = self.remove_trailing_slash(path)
