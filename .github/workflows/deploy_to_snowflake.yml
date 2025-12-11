@@ -18,21 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set env
-        id: get_env
-        run: echo "short_ref=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-
-      - name: Determine database
-        shell: bash
-        env:
-          BRANCH: ${{ steps.get_env.outputs.short_ref }}
-        run: |
-          if [ ${BRANCH} == "main" ]; then
-            echo "SNOWFLAKE_DATABASE=TERAKEET" >> $GITHUB_ENV
-          else
-            echo "SNOWFLAKE_DATABASE=TERAKEET_DEV" >> $GITHUB_ENV
-          fi
-
         # Snowflake CLI installation
       - uses: snowflakedb/snowflake-cli-action@v1.5
 
@@ -45,7 +30,7 @@ jobs:
             SNOWFLAKE_PRIVATE_KEY_RAW: ${{ env.SNOWFLAKE_PRIVATE_KEY }}
 
         run: |
-          snow sql -x -q 'CREATE OR REPLACE FUNCTION TERAKEET.COMMON.NORMALIZE_URL_TEMP("URL" VARCHAR)
+          snow sql -x -q 'CREATE OR REPLACE FUNCTION TERAKEET.COMMON.NORMALIZE_URL("URL" VARCHAR)
                         RETURNS VARCHAR
                         LANGUAGE PYTHON
                         RUNTIME_VERSION = "3.11"
