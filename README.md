@@ -213,6 +213,10 @@ We have a [workflow](.github/workflows/deploy_to_pypi.yml) set up to deploy to o
 
 If you have questions or concerns reach out.
 
+## Deploying to Snowflake -- UDF Update
+The normalizer implementaiton in snowflake is defined at [TERAKEET.COMMON.NORMALIZE_URL](https://app.snowflake.com/rbvgkpe/fhb30323/#/data/databases/TERAKEET/schemas/COMMON/user-function/NORMALIZE_URL(VARCHAR)).
+Once PYPI has been deployed, another [workflow](.github/workflows/deploy_to_snowflake.yml) will run and update the UDF in Snowflake. That UDF needs the new version of PYPI and will just override the current function. This happens instantly after PYPI has been deployed.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
