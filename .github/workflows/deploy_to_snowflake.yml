@@ -1,8 +1,9 @@
 name: Update Snowflake Normalizer UDF Definition
 
 on:
-    push:
-        branches: [feature/snowflake-deploy]
+    workflow_run:
+        workflows: [deploy_to_pypi]
+        types: [completed]
 jobs:
   update-snowflake-udf:
     runs-on: ubuntu-latest
