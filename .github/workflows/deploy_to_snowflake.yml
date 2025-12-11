@@ -1,0 +1,51 @@
+name: Update Snowflake Normalizer UDF Definition
+
+on:
+    workflow_run:
+        workflows: [deploy_to_pypi]
+        types: [completed]
+jobs:
+  update-snowflake-udf:
+    runs-on: ubuntu-latest
+
+    env:
+      SNOWFLAKE_ACCOUNT: "${{ secrets.SNOWFLAKE_ACCOUNT }}"
+      SNOWFLAKE_USERNAME: "SERVICE_GITHUB_USER"
+      SNOWFLAKE_PRIVATE_KEY: "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}"
+      SNOWSQL_ROLE: "DATA_ENGINEER"
+      SNOWSQL_WAREHOUSE: "GITHUB_WH"
+
+    steps:
+      - uses: actions/checkout@v3
+
+        # Snowflake CLI installation
+      - uses: snowflakedb/snowflake-cli-action@v1.5
+
+          # Use the CLI
+      - name: Execute Snowflake CLI command
+        env:
+            SNOWFLAKE_AUTHENTICATOR: SNOWFLAKE_JWT
+            SNOWFLAKE_USER: ${{ env.SNOWFLAKE_USERNAME }}
+            SNOWFLAKE_ACCOUNT: ${{ env.SNOWFLAKE_ACCOUNT }}
+            SNOWFLAKE_PRIVATE_KEY_RAW: ${{ env.SNOWFLAKE_PRIVATE_KEY }}
+
+        run: |
+          snow sql -x -q 'CREATE OR REPLACE FUNCTION TERAKEET.COMMON.NORMALIZE_URL("URL" VARCHAR)
+                        RETURNS VARCHAR
+                        LANGUAGE PYTHON
+                        RUNTIME_VERSION = "3.11"
+                        HANDLER = '\''normalize'\''
+                        ARTIFACT_REPOSITORY = snowflake.snowpark.pypi_shared_repository
+                        PACKAGES = ('\''tk-normalizer'\'')
+                        AS
+                        $$
+                        from tk_normalizer import TkNormalizer, InvalidUrlException
+                        def normalize(url):
+                            if url is None:
+                                return None
+                            try:
+                                normalized_value = TkNormalizer(url)
+                                return str(normalized_value)
+                            except InvalidUrlException:
+                                return None
+                        $$;'

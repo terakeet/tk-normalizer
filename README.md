@@ -193,6 +193,30 @@ pytest --cov=tk_normalizer --cov-report=html
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+## Deploying to PYPI
+
+We have a [workflow](.github/workflows/deploy_to_pypi.yml) set up to deploy to our [PYPI package](https://pypi.org/project/tk-normalizer/) when a release is created. Here is how you can do that:
+1. Cut a PR for your change
+2. Make sure you increment your version number in the [pyproject.toml](pyproject.toml) file in your changes
+3. After approval, merge changes to main branch
+4. Cut a new release in GitHub
+    - this can be found on the right hand side of the screen when you are at the repo's home page
+    - you should see the current release
+5. For consistency in the release:
+    - create a new tag that matches the version number you changed earlier
+    - add a title with a brief description of the changes
+    - add a small description or link to JIRA tickets for updates
+6. After creating the release you should see a workflow get triggered, this will deploy the updated version to pypi
+7. If you want to see check the pypi package page after the workflow completes running
+
+> NOTE: DO NOT change the name of the workflow file. If you do the deployment will not work unless we update the configuration in PYPI under trusted publishers
+
+If you have questions or concerns reach out.
+
+## Deploying to Snowflake -- UDF Update
+The normalizer implementaiton in snowflake is defined at [TERAKEET.COMMON.NORMALIZE_URL](https://app.snowflake.com/rbvgkpe/fhb30323/#/data/databases/TERAKEET/schemas/COMMON/user-function/NORMALIZE_URL(VARCHAR)).
+Once PYPI has been deployed, another [workflow](.github/workflows/deploy_to_snowflake.yml) will run and update the UDF in Snowflake. That UDF needs the new version of PYPI and will just override the current function. This happens instantly after PYPI has been deployed.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
