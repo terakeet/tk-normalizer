@@ -108,6 +108,7 @@ class TkNormalizer:
         parsed_url = self.parse_url(url)
         netloc, path, query = self.validate_url(parsed_url)
         netloc = self.remove_www_subdomain(netloc)
+
         path = self.remove_trailing_slash(path)
         query_params = self.parse_query_params(query)
         query_params = self.remove_unwanted_params(query_params)
@@ -116,6 +117,13 @@ class TkNormalizer:
         self.query_string = urlencode(unique_params)
         self.path = path
         normalized_url = self.rebuild_url(netloc, path, unique_params)
+        # After normalizing the URL, we can check if
+        # the URL has a TLD, if not raise an error
+        if "." not in normalized_url:
+            raise InvalidUrlException(
+                f"Invalid URL provided (no TLD in normalized URL) '{normalized_url}'",
+                ValueError(f"Normalized URL must contain a top-level domain. '{normalized_url}'"),
+            )
         parent_normalized_url = self.get_parent_normalized_url(netloc)
         root_normalized_url = self.get_root_normalized_url(netloc)
         return normalized_url, parent_normalized_url, root_normalized_url
