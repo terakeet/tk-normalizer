@@ -210,6 +210,7 @@ def test_dict_conversion() -> None:
 
     # Check all expected fields are present
     assert "normalized_url" in result
+    assert "friendly_url" in result
     assert "parent_normalized_url" in result
     assert "root_normalized_url" in result
     assert "query_string" in result
@@ -217,9 +218,11 @@ def test_dict_conversion() -> None:
     assert "normalized_url_hash" in result
     assert "parent_normalized_url_hash" in result
     assert "root_normalized_url_hash" in result
+    assert "friendly_url_hash" in result
 
     # Check values
     assert result["normalized_url"] == "example.com/path?a=1&b=2"
+    assert result["friendly_url"] == "http://www.Example.com/path?a=1&b=2"
     assert result["parent_normalized_url"] == "example.com"
     assert result["root_normalized_url"] == "example.com"
     assert result["query_string"] == "a=1&b=2"
@@ -265,6 +268,7 @@ def test_iteration() -> None:
     # Check expected keys are present
     expected_keys = {
         "normalized_url",
+        "friendly_url",
         "parent_normalized_url",
         "root_normalized_url",
         "query_string",
@@ -272,6 +276,7 @@ def test_iteration() -> None:
         "normalized_url_hash",
         "parent_normalized_url_hash",
         "root_normalized_url_hash",
+        "friendly_url_hash",
     }
     assert set(keys) == expected_keys
 
@@ -290,6 +295,7 @@ def test_keys_method() -> None:
     keys = normalizer.keys()
     expected_keys = {
         "normalized_url",
+        "friendly_url",
         "parent_normalized_url",
         "root_normalized_url",
         "query_string",
@@ -297,6 +303,7 @@ def test_keys_method() -> None:
         "normalized_url_hash",
         "parent_normalized_url_hash",
         "root_normalized_url_hash",
+        "friendly_url_hash",
     }
 
     assert set(keys) == expected_keys
@@ -304,7 +311,54 @@ def test_keys_method() -> None:
     # Keys should be a KeysView object
     assert hasattr(keys, "__iter__")
     assert hasattr(keys, "__len__")
-    assert len(keys) == 8
+    assert len(keys) == 10
+
+
+def test_friendly_url_preserves_casing() -> None:
+    normalizer = TkNormalizer("https://www.Terakeet.com/SomeUrl?utm_source=something")
+    assert normalizer["friendly_url"] == "https://www.Terakeet.com/SomeUrl"
+    assert normalizer["normalized_url"] == "terakeet.com/someurl"
+
+
+def test_friendly_url_preserves_scheme() -> None:
+    normalizer = TkNormalizer("https://example.com/Path")
+    assert normalizer["friendly_url"] == "https://example.com/Path"
+
+    normalizer = TkNormalizer("http://example.com/Path")
+    assert normalizer["friendly_url"] == "http://example.com/Path"
+
+
+def test_friendly_url_preserves_www() -> None:
+    normalizer = TkNormalizer("https://www.Example.com/Path")
+    assert normalizer["friendly_url"] == "https://www.Example.com/Path"
+    assert normalizer["normalized_url"] == "example.com/path"
+
+
+def test_friendly_url_removes_tracking_params() -> None:
+    normalizer = TkNormalizer("https://www.Example.com/Page?a=1&utm_source=test&fbclid=abc&b=2")
+    assert normalizer["friendly_url"] == "https://www.Example.com/Page?a=1&b=2"
+
+
+def test_friendly_url_sorts_and_dedupes_params() -> None:
+    normalizer = TkNormalizer("https://Example.com/Page?b=2&a=1&b=2&a=1")
+    assert normalizer["friendly_url"] == "https://Example.com/Page?a=1&b=2"
+
+
+def test_friendly_url_strips_trailing_slash_and_fragment() -> None:
+    normalizer = TkNormalizer("https://www.Example.com/Path/#section")
+    assert normalizer["friendly_url"] == "https://www.Example.com/Path"
+
+
+def test_friendly_url_no_scheme_input() -> None:
+    normalizer = TkNormalizer("example.com/Path?a=1")
+    assert normalizer["friendly_url"] == "http://example.com/Path?a=1"
+
+
+def test_friendly_url_hash_exists() -> None:
+    normalizer = TkNormalizer("https://example.com/path")
+    hash_val = normalizer["friendly_url_hash"]
+    assert isinstance(hash_val, str)
+    assert len(hash_val) == 64
 
 
 # These fixtures are at the bottom for readability of the upper tests
