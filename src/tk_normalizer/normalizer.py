@@ -91,7 +91,9 @@ class TkNormalizer:
             self.root_normalized_url: str
             self.query_string: str
             self.path: str
+            self.friendly_url: str
             self.normalized_url, self.parent_normalized_url, self.root_normalized_url = self.process_url(url)
+            self.friendly_url = self.build_friendly_url()
             self.url_hashes: dict[str, str] = self.compute_hashes()
         except InvalidUrlException as e:
             if self.log_errors:
@@ -186,11 +188,11 @@ class TkNormalizer:
     def parse_query_params(query: str) -> list[tuple[str, str]]:
         return parse_qsl(query, keep_blank_values=True)
 
-    def remove_unwanted_params(self, query_params: list[tuple[str, str]]) -> list[tuple[str, str]]:
-        def is_unwanted_param(param: str) -> bool:
-            return any(fnmatch.fnmatch(param, pattern) for pattern in self.query_params_to_remove)
+    def _is_unwanted_param(self, param_key: str) -> bool:
+        return any(fnmatch.fnmatch(param_key.lower(), p) for p in self.query_params_to_remove)
 
-        return [(k, v) for k, v in query_params if not is_unwanted_param(k)]
+    def remove_unwanted_params(self, query_params: list[tuple[str, str]]) -> list[tuple[str, str]]:
+        return [(k, v) for k, v in query_params if not self._is_unwanted_param(k)]
 
     @staticmethod
     def sort_query_params(query_params: list[tuple[str, str]]) -> list[tuple[str, str]]:
@@ -219,6 +221,20 @@ class TkNormalizer:
     def get_root_normalized_url(netloc: str) -> str:
         return ".".join(netloc.split(".")[-2:])
 
+    def build_friendly_url(self) -> str:
+        parsed = self.parse_url(self.original_url)
+        scheme = parsed.scheme
+        netloc = parsed.netloc
+        path = unquote(parsed.path)
+        path = self.remove_trailing_slash(path)
+        query_params = self.parse_query_params(parsed.query)
+        query_params = self.remove_unwanted_params(query_params)
+        query_params = self.sort_query_params(query_params)
+        unique_params = self.remove_duplicate_params(query_params)
+        query_string = urlencode(unique_params)
+        url = f"{scheme}://{netloc}{path}"
+        return f"{url}?{query_string}" if query_string else url
+
     def compute_hashes(self) -> dict[str, str]:
         def sha256_hash(value: str) -> str:
             return hashlib.sha256(value.encode()).hexdigest()
@@ -227,11 +243,13 @@ class TkNormalizer:
             "normalized_url_hash": sha256_hash(self.normalized_url),
             "parent_normalized_url_hash": sha256_hash(self.parent_normalized_url),
             "root_normalized_url_hash": sha256_hash(self.root_normalized_url),
+            "friendly_url_hash": sha256_hash(self.friendly_url),
         }
 
     def to_dict(self) -> dict[str, str | list[tuple[str, str]]]:
         return {
             "normalized_url": self.normalized_url,
+            "friendly_url": self.friendly_url,
             "parent_normalized_url": self.parent_normalized_url,
             "root_normalized_url": self.root_normalized_url,
             "query_string": self.query_string,
