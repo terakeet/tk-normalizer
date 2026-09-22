@@ -74,26 +74,30 @@ The following tracking parameters are automatically removed:
 
 ```python
 query_params_to_remove = [
-    "utm_*",      # Google/Urchin tracking
-    "gclid",      # Google Click ID
-    "fbclid",     # Facebook Click ID
-    "dclid",      # DoubleClick Click ID
-    "_ga",        # Google Analytics
-    "_gid",       # Google Analytics
-    "_fbp",       # Facebook Pixel
-    "_hjid",      # Hotjar
-    "msclkid",    # Microsoft Ads
-    "aff_id",     # Affiliate ID
-    "affid",      # Affiliate ID
-    "referrer",   # Referrer info
+    "utm_*",  # Google/Urchin tracking
+    "gclid",  # Google Click ID
+    "fbclid",  # Facebook Click ID
+    "dclid",  # DoubleClick Click ID
+    "_ga",  # Google Analytics
+    "_gid",  # Google Analytics
+    "_fbp",  # Facebook Pixel
+    "_hjid",  # Hotjar
+    "msclkid",  # Microsoft Ads
+    "aff_id",  # Affiliate ID
+    "affid",  # Affiliate ID
+    "referrer",  # Referrer info
     "adgroupid",  # Ad group ID
-    "srsltid",    # Google SERP tracking
+    "srsltid",  # Google SERP tracking
+    "gaa_*",  # Google Extended Access
+    "eafs_enabled",  # Google Extended Access
 ]
 ```
 
 ### Wildcard Matching
 
-The `utm_*` pattern uses fnmatch to remove all UTM parameters:
+The `utm_*` and `gaa_*` patterns use fnmatch to remove whole families.
+
+`utm_*` removes all UTM parameters:
 - utm_source
 - utm_medium
 - utm_campaign
@@ -170,14 +174,14 @@ The normalizer is designed to be multiprocessing-safe:
 
 ```python
 {
-    'normalized_url': 'example.com/path?a=1',
-    'parent_normalized_url': 'example.com',
-    'root_normalized_url': 'example.com',
-    'query_string': 'a=1',
-    'path': '/path',
-    'normalized_url_hash': '...',
-    'parent_normalized_url_hash': '...',
-    'root_normalized_url_hash': '...'
+    "normalized_url": "example.com/path?a=1",
+    "parent_normalized_url": "example.com",
+    "root_normalized_url": "example.com",
+    "query_string": "a=1",
+    "path": "/path",
+    "normalized_url_hash": "...",
+    "parent_normalized_url_hash": "...",
+    "root_normalized_url_hash": "...",
 }
 ```
 
