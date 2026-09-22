@@ -88,6 +88,11 @@ query_params_to_remove = [
     "referrer",   # Referrer info
     "adgroupid",  # Ad group ID
     "srsltid",    # Google SERP tracking
+    "gaa_at",     # Google Extended Access
+    "gaa_n",      # Google Extended Access
+    "gaa_ts",     # Google Extended Access
+    "gaa_sig",    # Google Extended Access
+    "eafs_enabled",  # Google Extended Access
 ]
 ```
 

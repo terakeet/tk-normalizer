@@ -69,6 +69,7 @@ The following tracking parameters are automatically removed during normalization
 - `msclkid` (Microsoft Ads)
 - `aff_id`, `affid` (affiliate tracking)
 - `referrer`, `adgroupid`, `srsltid`
+- `gaa_at`, `gaa_n`, `gaa_ts`, `gaa_sig`, `eafs_enabled` (Google Extended Access, used by paywalled publishers)
 
 ## Advanced Usage
 

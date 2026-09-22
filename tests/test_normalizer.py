@@ -361,6 +361,24 @@ def test_friendly_url_hash_exists() -> None:
     assert len(hash_val) == 64
 
 
+def test_google_extended_access_params_removed() -> None:
+    normalizer = TkNormalizer(
+        "https://www.wsj.com/market-data/quotes/TSN?gaa_at=eafs&gaa_n=AWEtsqcSfkA2CiTCf4PLiw7D4crACVBHW5gAe0L5ubd"
+        "&gaa_ts=691c0b39&gaa_sig=zdv02R-2BLJsEemEuMPdo0DfiS3WAkuRtu4smExyoSHaXWRIZ9HNY2-6hvPV4FM9hTLebiDiOXe8"
+    )
+    assert normalizer["normalized_url"] == "wsj.com/market-data/quotes/tsn"
+
+
+def test_eafs_enabled_removed() -> None:
+    normalizer = TkNormalizer("https://www.wsj.com/market-data/quotes/TSN?eafs_enabled=false")
+    assert normalizer["normalized_url"] == "wsj.com/market-data/quotes/tsn"
+
+
+def test_extended_access_removal_keeps_other_params() -> None:
+    normalizer = TkNormalizer("https://www.wsj.com/articles/some-story?gaa_at=eafs&mod=hp_lead_pos1&page=2")
+    assert normalizer["normalized_url"] == "wsj.com/articles/some-story?mod=hp_lead_pos1&page=2"
+
+
 # These fixtures are at the bottom for readability of the upper tests
 
 
@@ -381,6 +399,10 @@ def happy_normal_fx() -> list[str]:
         (
             "nordstrom.com/browse/men/clothing/pants?filterbymaterial=mesh&srsltid=afmbooo0gkfvz9kwi-1s5atomy-8mtn6nwvrwub1nmxc9z9b8zse6w7h",
             "nordstrom.com/browse/men/clothing/pants?filterbymaterial=mesh",
+        ),
+        (
+            "https://www.marketwatch.com/investing/stock/aig/company-profile?countrycode=ch&gaa_at=eafs&gaa_ts=687a0c",
+            "marketwatch.com/investing/stock/aig/company-profile?countrycode=ch",
         ),
         (
             "https://www.libertymutual.com/insurance-resources/auto/main-types-of-car-insurance#:~:text=The%206%20main%20types%[…]that%20you,Uninsured%20Motorist",

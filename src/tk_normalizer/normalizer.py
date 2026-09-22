@@ -78,6 +78,11 @@ class TkNormalizer:
         "referrer",
         "adgroupid",
         "srsltid",
+        "gaa_at",
+        "gaa_n",
+        "gaa_ts",
+        "gaa_sig",
+        "eafs_enabled",
     ]
 
     def __init__(self, url: str, log_errors: bool = True) -> None:
