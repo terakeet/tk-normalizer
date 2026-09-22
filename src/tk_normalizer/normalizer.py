@@ -78,10 +78,7 @@ class TkNormalizer:
         "referrer",
         "adgroupid",
         "srsltid",
-        "gaa_at",
-        "gaa_n",
-        "gaa_ts",
-        "gaa_sig",
+        "gaa_*",
         "eafs_enabled",
     ]
 

@@ -88,17 +88,16 @@ query_params_to_remove = [
     "referrer",  # Referrer info
     "adgroupid",  # Ad group ID
     "srsltid",  # Google SERP tracking
-    "gaa_at",  # Google Extended Access
-    "gaa_n",  # Google Extended Access
-    "gaa_ts",  # Google Extended Access
-    "gaa_sig",  # Google Extended Access
+    "gaa_*",  # Google Extended Access
     "eafs_enabled",  # Google Extended Access
 ]
 ```
 
 ### Wildcard Matching
 
-The `utm_*` pattern uses fnmatch to remove all UTM parameters:
+The `utm_*` and `gaa_*` patterns use fnmatch to remove whole families.
+
+`utm_*` removes all UTM parameters:
 - utm_source
 - utm_medium
 - utm_campaign

@@ -374,6 +374,16 @@ def test_eafs_enabled_removed() -> None:
     assert normalizer["normalized_url"] == "wsj.com/market-data/quotes/tsn"
 
 
+def test_gaa_wildcard_covers_unseen_params() -> None:
+    normalizer = TkNormalizer("https://www.wsj.com/articles/some-story?gaa_future_param=x&a=1")
+    assert normalizer["normalized_url"] == "wsj.com/articles/some-story?a=1"
+
+
+def test_gaa_wildcard_requires_the_underscore() -> None:
+    normalizer = TkNormalizer("https://example.com/page?gaa=1&gaal=2")
+    assert normalizer["normalized_url"] == "example.com/page?gaa=1&gaal=2"
+
+
 def test_extended_access_removal_keeps_other_params() -> None:
     normalizer = TkNormalizer("https://www.wsj.com/articles/some-story?gaa_at=eafs&mod=hp_lead_pos1&page=2")
     assert normalizer["normalized_url"] == "wsj.com/articles/some-story?mod=hp_lead_pos1&page=2"
