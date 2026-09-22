@@ -74,24 +74,24 @@ The following tracking parameters are automatically removed:
 
 ```python
 query_params_to_remove = [
-    "utm_*",      # Google/Urchin tracking
-    "gclid",      # Google Click ID
-    "fbclid",     # Facebook Click ID
-    "dclid",      # DoubleClick Click ID
-    "_ga",        # Google Analytics
-    "_gid",       # Google Analytics
-    "_fbp",       # Facebook Pixel
-    "_hjid",      # Hotjar
-    "msclkid",    # Microsoft Ads
-    "aff_id",     # Affiliate ID
-    "affid",      # Affiliate ID
-    "referrer",   # Referrer info
+    "utm_*",  # Google/Urchin tracking
+    "gclid",  # Google Click ID
+    "fbclid",  # Facebook Click ID
+    "dclid",  # DoubleClick Click ID
+    "_ga",  # Google Analytics
+    "_gid",  # Google Analytics
+    "_fbp",  # Facebook Pixel
+    "_hjid",  # Hotjar
+    "msclkid",  # Microsoft Ads
+    "aff_id",  # Affiliate ID
+    "affid",  # Affiliate ID
+    "referrer",  # Referrer info
     "adgroupid",  # Ad group ID
-    "srsltid",    # Google SERP tracking
-    "gaa_at",     # Google Extended Access
-    "gaa_n",      # Google Extended Access
-    "gaa_ts",     # Google Extended Access
-    "gaa_sig",    # Google Extended Access
+    "srsltid",  # Google SERP tracking
+    "gaa_at",  # Google Extended Access
+    "gaa_n",  # Google Extended Access
+    "gaa_ts",  # Google Extended Access
+    "gaa_sig",  # Google Extended Access
     "eafs_enabled",  # Google Extended Access
 ]
 ```
@@ -175,14 +175,14 @@ The normalizer is designed to be multiprocessing-safe:
 
 ```python
 {
-    'normalized_url': 'example.com/path?a=1',
-    'parent_normalized_url': 'example.com',
-    'root_normalized_url': 'example.com',
-    'query_string': 'a=1',
-    'path': '/path',
-    'normalized_url_hash': '...',
-    'parent_normalized_url_hash': '...',
-    'root_normalized_url_hash': '...'
+    "normalized_url": "example.com/path?a=1",
+    "parent_normalized_url": "example.com",
+    "root_normalized_url": "example.com",
+    "query_string": "a=1",
+    "path": "/path",
+    "normalized_url_hash": "...",
+    "parent_normalized_url_hash": "...",
+    "root_normalized_url_hash": "...",
 }
 ```
 

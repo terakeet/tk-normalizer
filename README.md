@@ -117,11 +117,11 @@ from tk_normalizer import TkNormalizer
 normalizer = TkNormalizer("https://blog.example.com/path?a=1")
 
 # Dict-like access to individual fields
-print(normalizer["normalized_url"])       # blog.example.com/path?a=1
-print(normalizer["parent_normalized_url"]) # blog.example.com
-print(normalizer["root_normalized_url"])   # example.com
-print(normalizer["query_string"])          # a=1
-print(normalizer["path"])                  # /path
+print(normalizer["normalized_url"])  # blog.example.com/path?a=1
+print(normalizer["parent_normalized_url"])  # blog.example.com
+print(normalizer["root_normalized_url"])  # example.com
+print(normalizer["query_string"])  # a=1
+print(normalizer["path"])  # /path
 
 # Iterate over available fields
 for key in normalizer:
