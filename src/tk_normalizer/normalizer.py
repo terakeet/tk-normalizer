@@ -5,6 +5,12 @@ import re
 from collections.abc import Iterator, KeysView
 from urllib.parse import ParseResult, parse_qsl, unquote, urlencode, urlparse
 
+import tldextract
+
+# The bundled Public Suffix List snapshot (ICANN section): no network fetch and no cache writes,
+# so it behaves the same in a Snowflake UDF, a worker pool, or a read-only filesystem.
+_PUBLIC_SUFFIXES = tldextract.TLDExtract(suffix_list_urls=(), cache_dir=None)
+
 # Uses https://gist.github.com/Integralist/edcfb88c925658a13fc3e51f581fe4bc as a starting point
 # Modified for more current rules regarding host/domain/tld naming.
 
@@ -91,10 +97,12 @@ class TkNormalizer:
             self.normalized_url: str
             self.parent_normalized_url: str
             self.root_normalized_url: str
+            self.registrable_domain: str
             self.query_string: str
             self.path: str
             self.friendly_url: str
             self.normalized_url, self.parent_normalized_url, self.root_normalized_url = self.process_url(url)
+            self.registrable_domain = self.get_registrable_domain(self.parent_normalized_url)
             self.friendly_url = self.build_friendly_url()
             self.url_hashes: dict[str, str] = self.compute_hashes()
         except InvalidUrlException as e:
@@ -220,6 +228,14 @@ class TkNormalizer:
         return netloc
 
     @staticmethod
+    def get_registrable_domain(netloc: str) -> str:
+        """The host one label below its public suffix: bbc.co.uk for news.bbc.co.uk, where the root is co.uk.
+
+        Falls back to the host when there is no such label (an IP address, or a bare suffix like gov.uk).
+        """
+        return _PUBLIC_SUFFIXES(netloc).top_domain_under_public_suffix or netloc
+
+    @staticmethod
     def get_root_normalized_url(netloc: str) -> str:
         return ".".join(netloc.split(".")[-2:])
 
@@ -245,6 +261,7 @@ class TkNormalizer:
             "normalized_url_hash": sha256_hash(self.normalized_url),
             "parent_normalized_url_hash": sha256_hash(self.parent_normalized_url),
             "root_normalized_url_hash": sha256_hash(self.root_normalized_url),
+            "registrable_domain_hash": sha256_hash(self.registrable_domain),
             "friendly_url_hash": sha256_hash(self.friendly_url),
         }
 
@@ -254,6 +271,7 @@ class TkNormalizer:
             "friendly_url": self.friendly_url,
             "parent_normalized_url": self.parent_normalized_url,
             "root_normalized_url": self.root_normalized_url,
+            "registrable_domain": self.registrable_domain,
             "query_string": self.query_string,
             "path": self.path,
             **self.url_hashes,

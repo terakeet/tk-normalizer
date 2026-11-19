@@ -88,13 +88,17 @@ result = dict(normalizer)
 print(result)
 # {
 #   'normalized_url': 'blog.example.com/page?a=1&b=2',
+#   'friendly_url': 'http://blog.example.com/page?a=1&b=2',
 #   'parent_normalized_url': 'blog.example.com',
 #   'root_normalized_url': 'example.com',
+#   'registrable_domain': 'example.com',
 #   'query_string': 'a=1&b=2',
 #   'path': '/page',
 #   'normalized_url_hash': '...',
 #   'parent_normalized_url_hash': '...',
-#   'root_normalized_url_hash': '...'
+#   'root_normalized_url_hash': '...',
+#   'registrable_domain_hash': '...',
+#   'friendly_url_hash': '...'
 # }
 ```
 
@@ -120,6 +124,7 @@ normalizer = TkNormalizer("https://blog.example.com/path?a=1")
 print(normalizer["normalized_url"])  # blog.example.com/path?a=1
 print(normalizer["parent_normalized_url"])  # blog.example.com
 print(normalizer["root_normalized_url"])  # example.com
+print(normalizer["registrable_domain"])  # example.com
 print(normalizer["query_string"])  # a=1
 print(normalizer["path"])  # /path
 
@@ -131,14 +136,29 @@ for key in normalizer:
 print(normalizer.keys())
 ```
 
+## Which URL Form to Use
+
+| need | use |
+|------|-----|
+| comparing, joining, deduping, counting | `normalized_url` (or `normalized_url_hash`) |
+| showing a URL to a person | `friendly_url` (original casing, tracking params removed) |
+| linking out, fetching, redriving | the original URL you passed in |
+| grouping by site | `registrable_domain` |
+
+`normalized_url` is lowercased on purpose, so case variants of the same page compare equal. Keep the original URL
+next to it wherever you need to reach the page again.
+
 ## Hashing
 
 For efficient storage and comparison, SHA-256 hashes are computed for:
 - The normalized URL
 - The parent normal URL (domain without path)
-- The root normal URL (root domain without subdomains)
+- The root normal URL (last two labels of the host)
+- The registrable domain
+- The friendly URL
 
-This provides fixed-length representations suitable for database indexing.
+This provides fixed-length representations suitable for database indexing. Storing the 32-byte digest
+(`bytes.fromhex(...)`) instead of the 64-character hex string halves the key size.
 
 ## Important Caveats
 
@@ -151,6 +171,11 @@ While this normalization process works well for most use cases, there are some l
 3. **Tracking parameters**: New tracking parameters emerge over time and may not be in the removal list.
 
 4. **Fragment removal**: URL fragments (#anchors) are removed, which may affect single-page applications.
+
+5. **Root vs registrable domain**: `root_normalized_url` is the last two labels of the host, so it is wrong under
+   multi-label public suffixes: `news.bbc.co.uk` gets the root `co.uk`. `registrable_domain` uses the Public Suffix
+   List (ICANN section, bundled with `tldextract`) and gives `bbc.co.uk`. Group sites by `registrable_domain`.
+   `root_normalized_url` is unchanged so existing consumers do not shift.
 
 ## Development
 
