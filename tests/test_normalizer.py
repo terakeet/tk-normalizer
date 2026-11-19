@@ -1,3 +1,4 @@
+import hashlib
 import multiprocessing
 import time
 from multiprocessing import Process
@@ -271,11 +272,13 @@ def test_iteration() -> None:
         "friendly_url",
         "parent_normalized_url",
         "root_normalized_url",
+        "registrable_domain",
         "query_string",
         "path",
         "normalized_url_hash",
         "parent_normalized_url_hash",
         "root_normalized_url_hash",
+        "registrable_domain_hash",
         "friendly_url_hash",
     }
     assert set(keys) == expected_keys
@@ -298,11 +301,13 @@ def test_keys_method() -> None:
         "friendly_url",
         "parent_normalized_url",
         "root_normalized_url",
+        "registrable_domain",
         "query_string",
         "path",
         "normalized_url_hash",
         "parent_normalized_url_hash",
         "root_normalized_url_hash",
+        "registrable_domain_hash",
         "friendly_url_hash",
     }
 
@@ -311,7 +316,7 @@ def test_keys_method() -> None:
     # Keys should be a KeysView object
     assert hasattr(keys, "__iter__")
     assert hasattr(keys, "__len__")
-    assert len(keys) == 10
+    assert len(keys) == 12
 
 
 def test_friendly_url_preserves_casing() -> None:
@@ -387,6 +392,45 @@ def test_gaa_wildcard_requires_the_underscore() -> None:
 def test_extended_access_removal_keeps_other_params() -> None:
     normalizer = TkNormalizer("https://www.wsj.com/articles/some-story?gaa_at=eafs&mod=hp_lead_pos1&page=2")
     assert normalizer["normalized_url"] == "wsj.com/articles/some-story?mod=hp_lead_pos1&page=2"
+
+
+@pytest.mark.parametrize(
+    ("url", "registrable", "root"),
+    [
+        # Multi-label public suffixes: the root is the suffix itself, the registrable domain is the site.
+        ("https://www.abbvie.co.uk/our-science.html", "abbvie.co.uk", "co.uk"),
+        ("https://news.bbc.co.uk/sport", "bbc.co.uk", "co.uk"),
+        ("https://www.adelaidenow.com.au/news", "adelaidenow.com.au", "com.au"),
+        ("https://www.forbes.com.mx/negocios", "forbes.com.mx", "com.mx"),
+        # Single-label suffixes agree with the root.
+        ("https://finance.yahoo.com/quote/AAPL", "yahoo.com", "yahoo.com"),
+        ("https://example.com/path", "example.com", "example.com"),
+        # Ports are not part of the domain.
+        ("https://shop.example.co.uk:8080/cart", "example.co.uk", "co.uk:8080"),
+    ],
+)
+def test_registrable_domain(url: str, registrable: str, root: str) -> None:
+    normalizer = TkNormalizer(url)
+    assert normalizer["registrable_domain"] == registrable
+    # root_normalized_url keeps its existing value so current consumers do not shift.
+    assert normalizer["root_normalized_url"] == root
+
+
+@pytest.mark.parametrize(
+    ("url", "registrable"),
+    [
+        # A bare public suffix has no label under it: fall back to the host.
+        ("https://www.gov.uk/browse/tax", "gov.uk"),
+        ("http://93.184.216.34/path", "93.184.216.34"),
+    ],
+)
+def test_registrable_domain_falls_back_to_host(url: str, registrable: str) -> None:
+    assert TkNormalizer(url)["registrable_domain"] == registrable
+
+
+def test_registrable_domain_hash() -> None:
+    normalizer = TkNormalizer("https://news.bbc.co.uk/sport")
+    assert normalizer["registrable_domain_hash"] == hashlib.sha256(b"bbc.co.uk").hexdigest()
 
 
 # These fixtures are at the bottom for readability of the upper tests

@@ -52,11 +52,13 @@ The normalizer uses a comprehensive regex pattern that handles:
 
 ### SHA-256 Hash Generation
 
-For efficient storage and comparison, three hashes are computed:
+For efficient storage and comparison, five hashes are computed:
 
 1. **Normalized URL Hash**: Hash of the fully normalized URL
 2. **Parent Normal URL Hash**: Hash of the domain without path
-3. **Root Normal URL Hash**: Hash of the root domain
+3. **Root Normal URL Hash**: Hash of the root domain (last two labels of the host)
+4. **Registrable Domain Hash**: Hash of the domain one label below its public suffix
+5. **Friendly URL Hash**: Hash of the friendly URL
 
 Example:
 ```
@@ -64,7 +66,20 @@ URL: http://blog.example.com/page?a=1
 Normalized: blog.example.com/page?a=1
 Parent: blog.example.com
 Root: example.com
+Registrable: example.com
+
+URL: https://news.bbc.co.uk/sport
+Parent: news.bbc.co.uk
+Root: co.uk            (last two labels; kept for existing consumers)
+Registrable: bbc.co.uk (Public Suffix List)
 ```
+
+### Registrable Domain
+
+`registrable_domain` comes from the Public Suffix List snapshot bundled with `tldextract` (ICANN section only, so
+`foo.blogspot.com` gives `blogspot.com`). The extractor never fetches the list and never writes a cache, so it works
+the same in a Snowflake UDF or on a read-only filesystem. When the host has no label under its suffix (an IP address,
+or a bare suffix like `gov.uk`), it falls back to the host.
 
 ## Tracking Parameter Removal
 
@@ -176,12 +191,16 @@ The normalizer is designed to be multiprocessing-safe:
 {
     "normalized_url": "example.com/path?a=1",
     "parent_normalized_url": "example.com",
+    "friendly_url": "http://example.com/path?a=1",
     "root_normalized_url": "example.com",
+    "registrable_domain": "example.com",
     "query_string": "a=1",
     "path": "/path",
     "normalized_url_hash": "...",
     "parent_normalized_url_hash": "...",
     "root_normalized_url_hash": "...",
+    "registrable_domain_hash": "...",
+    "friendly_url_hash": "...",
 }
 ```
 
@@ -197,7 +216,7 @@ The normalizer provides multiple ways to access components:
 
 #### Dict-like Access
 - `normalizer["field_name"]`: Access specific fields using bracket notation
-- Available fields: `normalized_url`, `parent_normalized_url`, `root_normalized_url`, `query_string`, `path`, plus the three hash fields
+- Available fields: `normalized_url`, `friendly_url`, `parent_normalized_url`, `root_normalized_url`, `registrable_domain`, `query_string`, `path`, plus the five hash fields
 
 #### Iteration
 - `for key in normalizer`: Iterate over field names
@@ -206,7 +225,8 @@ The normalizer provides multiple ways to access components:
 #### Direct Attributes (Internal)
 - `normalizer.normalized_url`: The normalized URL string
 - `normalizer.parent_normalized_url`: Domain without path
-- `normalizer.root_normalized_url`: Root domain without subdomains
+- `normalizer.root_normalized_url`: Last two labels of the host
+- `normalizer.registrable_domain`: Domain one label below its public suffix
 - `normalizer.original_url`: Original input URL
 - `normalizer.query_string`: Normalized query string
 - `normalizer.path`: URL path component
