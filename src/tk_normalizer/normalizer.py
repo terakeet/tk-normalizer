@@ -10,6 +10,8 @@ import tldextract
 # The bundled Public Suffix List snapshot (ICANN section): no network fetch and no cache writes,
 # so it behaves the same in a Snowflake UDF, a worker pool, or a read-only filesystem.
 _PUBLIC_SUFFIXES = tldextract.TLDExtract(suffix_list_urls=(), cache_dir=None)
+# A trailing port (":8080", or a bare ":") on a netloc.
+_PORT_RE = re.compile(r":\d*$")
 
 # Uses https://gist.github.com/Integralist/edcfb88c925658a13fc3e51f581fe4bc as a starting point
 # Modified for more current rules regarding host/domain/tld naming.
@@ -231,9 +233,10 @@ class TkNormalizer:
     def get_registrable_domain(netloc: str) -> str:
         """The host one label below its public suffix: bbc.co.uk for news.bbc.co.uk, where the root is co.uk.
 
-        Falls back to the host when there is no such label (an IP address, or a bare suffix like gov.uk).
+        Falls back to the host, without its port, when there is no such label (an IP address, or a bare suffix like
+        gov.uk).
         """
-        return _PUBLIC_SUFFIXES(netloc).top_domain_under_public_suffix or netloc
+        return _PUBLIC_SUFFIXES(netloc).top_domain_under_public_suffix or _PORT_RE.sub("", netloc)
 
     @staticmethod
     def get_root_normalized_url(netloc: str) -> str:
