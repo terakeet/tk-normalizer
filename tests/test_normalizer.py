@@ -422,6 +422,9 @@ def test_registrable_domain(url: str, registrable: str, root: str) -> None:
         # A bare public suffix has no label under it: fall back to the host.
         ("https://www.gov.uk/browse/tax", "gov.uk"),
         ("http://93.184.216.34/path", "93.184.216.34"),
+        # The fallback drops the port too, like the Public Suffix List path does.
+        ("http://93.184.216.34:8080/path", "93.184.216.34"),
+        ("https://www.gov.uk:443/browse/tax", "gov.uk"),
     ],
 )
 def test_registrable_domain_falls_back_to_host(url: str, registrable: str) -> None:
